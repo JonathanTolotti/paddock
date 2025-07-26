@@ -6,6 +6,7 @@ use App\Http\Requests\Clients\StoreClientRequest;
 use App\Http\Requests\Clients\UpdateClientRequest;
 use App\Models\Client;
 use App\Services\ClientService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -82,5 +83,18 @@ class ClientController extends Controller
 
         return redirect()->route('clients.index')
             ->with('success', 'Cliente excluído com sucesso.');
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $term = $request->query('q', '');
+
+        $clients = Client::query()->where('name', 'LIKE', "%{$term}%")
+            ->orWhere('document_number', 'LIKE', "%{$term}%")
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'document_number']);
+
+        return response()->json($clients);
     }
 }
