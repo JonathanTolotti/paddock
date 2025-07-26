@@ -1,45 +1,40 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-
-// Importando componentes do shadcn-vue
+import { ref, onMounted, computed, watchEffect } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button' // Adicione a importação do Button
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-// Importando ícones do Lucide
-import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, PanelLeft } from 'lucide-vue-next';
+import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, MoreHorizontal, PlusCircle } from 'lucide-vue-next';
+import Swal from 'sweetalert2';
 
 defineProps({
     title: String,
 });
 
-// Estado para o menu mobile
-const isMobileMenuOpen = ref(false);
 
-// Lógica do Dark Mode
-const isDarkMode = ref(false);
-const toggleDarkMode = () => {
-    isDarkMode.value = !isDarkMode.value;
+const isDarkMode = ref(
+    localStorage.getItem('theme') === 'dark' ||
+    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+);
+
+watchEffect(() => {
     if (isDarkMode.value) {
         document.documentElement.classList.add('dark');
-        localStorage.setItem('darkMode', 'enabled');
+        localStorage.setItem('theme', 'dark');
     } else {
         document.documentElement.classList.remove('dark');
-        localStorage.setItem('darkMode', 'disabled');
-    }
-};
-onMounted(() => {
-    if (localStorage.getItem('darkMode') === 'enabled' ||
-        (window.matchMedia('(prefers-color-scheme: dark)').matches && localStorage.getItem('darkMode') !== 'disabled')) {
-        isDarkMode.value = true;
+        localStorage.setItem('theme', 'light');
     }
 });
+
+const toggleDarkMode = () => {
+    isDarkMode.value = !isDarkMode.value;
+};
+
 
 const logout = () => {
     router.post(route('logout'));
@@ -48,7 +43,7 @@ const logout = () => {
 const menuItems = [
     { name: 'Dashboard', routeName: 'dashboard', icon: 'Home' },
     { name: 'Ordens de Serviço', routeName: '#', icon: 'Wrench' },
-    { name: 'Clientes', routeName: '#', icon: 'Users' },
+    { name: 'Clientes', routeName: 'clients.index', icon: 'Users' },
     { name: 'Veículos', routeName: '#', icon: 'Car' },
     { name: 'Estoque', routeName: '#', icon: 'Warehouse' },
 ];
@@ -56,6 +51,33 @@ const menuItems = [
 const icons = {
     Home, Wrench, Users, Car, Warehouse
 };
+
+watchEffect(() => {
+    const page = usePage();
+    if (page.props.flash?.success) {
+        Swal.fire({
+            icon: 'success',
+            title: page.props.flash.success,
+            showConfirmButton: false,
+            timer: 2000,
+            toast: true,
+            position: 'top-end',
+            timerProgressBar: true,
+        });
+    }
+
+    if (page.props.flash?.error) {
+        Swal.fire({
+            icon: 'error',
+            title: page.props.flash.error,
+            showConfirmButton: false,
+            timer: 3000,
+            toast: true,
+            position: 'top-end',
+            timerProgressBar: true,
+        });
+    }
+});
 </script>
 
 <template>
@@ -67,9 +89,6 @@ const icons = {
                     <Link :href="route('dashboard')" class="flex items-center gap-2 font-semibold">
                         <span class="text-xl">Paddock</span>
                     </Link>
-                    <div v-if="$page.props.tenant" class="text-xs text-muted-foreground">
-                        {{ $page.props.tenant.name }}
-                    </div>
                 </div>
                 <div class="flex-1">
                     <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -82,12 +101,6 @@ const icons = {
                         </Link>
                     </nav>
                 </div>
-                <div class="mt-auto p-4 border-t dark:border-zinc-800">
-                    <div v-if="tenant" class="text-xs text-center text-muted-foreground">
-                        <span>Licenciado para:</span>
-                        <p class="font-semibold text-foreground">{{ tenant.name }}</p>
-                    </div>
-                </div>
             </div>
         </aside>
 
@@ -98,10 +111,11 @@ const icons = {
                 </button>
                 <div class="w-full flex-1">
                 </div>
-                <button @click="toggleDarkMode" class="p-2 rounded-full">
+                <Button @click="toggleDarkMode" variant="ghost" size="icon">
                     <Sun class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                     <Moon class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                </button>
+                    <span class="sr-only">Alternar tema</span>
+                </Button>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
