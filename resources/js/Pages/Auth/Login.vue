@@ -1,11 +1,10 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Mail, Lock, LoaderCircle } from 'lucide-vue-next';
 
 defineProps({
     canResetPassword: {
@@ -30,71 +29,81 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Log in" />
-
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
-
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Senha" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600 dark:text-gray-400"
-                        >Manter conectado</span
-                    >
-                </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
-                >
-                    Esqueceu a senha?
+    <Head title="Acessar Conta" />
+    <div class="flex flex-col items-center justify-center min-h-screen bg-muted/40 p-4">
+        <div class="mx-auto w-full max-w-md">
+            <div class="flex justify-center mb-8">
+                <Link :href="route('dashboard')" class="text-3xl font-bold">
+                    Paddock
                 </Link>
-
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Acessar
-                </PrimaryButton>
             </div>
-        </form>
-    </GuestLayout>
+
+            <div class="bg-background border shadow-sm rounded-lg p-6 sm:p-8">
+                <div class="grid gap-2 text-center mb-8">
+                    <h1 class="text-2xl font-semibold tracking-tight">Acesse sua conta</h1>
+                    <p class="text-sm text-muted-foreground">
+                        Digite seu e-mail abaixo para entrar na sua oficina.
+                    </p>
+                </div>
+
+                <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
+                    {{ status }}
+                </div>
+
+                <form @submit.prevent="submit" class="grid gap-4">
+                    <div class="grid gap-2">
+                        <Label for="email">E-mail</Label>
+                        <div class="relative">
+                            <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="email"
+                                v-model="form.email"
+                                type="email"
+                                placeholder="seu@email.com"
+                                required
+                                autofocus
+                                class="pl-10"
+                            />
+                        </div>
+                        <p v-if="form.errors.email" class="text-sm text-destructive mt-1">{{ form.errors.email }}</p>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <div class="flex items-center">
+                            <Label for="password">Senha</Label>
+                            <Link v-if="canResetPassword" :href="route('password.request')" class="ml-auto inline-block text-sm underline">
+                                Esqueceu a senha?
+                            </Link>
+                        </div>
+                        <div class="relative">
+                            <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="password"
+                                v-model="form.password"
+                                type="password"
+                                required
+                                class="pl-10"
+                            />
+                        </div>
+                        <p v-if="form.errors.password" class="text-sm text-destructive mt-1">{{ form.errors.password }}</p>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <Checkbox id="remember" v-model:checked="form.remember" />
+                        <label
+                            for="remember"
+                            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Lembrar de mim
+                        </label>
+                    </div>
+
+                    <Button type="submit" class="w-full mt-2 h-11 text-base" :disabled="form.processing">
+                        <LoaderCircle v-if="form.processing" class="h-5 w-5 animate-spin" />
+                        <span v-else>Entrar</span>
+                    </Button>
+                </form>
+            </div>
+        </div>
+    </div>
 </template>
