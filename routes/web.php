@@ -31,10 +31,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('work-orders', WorkOrderController::class);
 
     Route::get('/services/search', [ServiceController::class, 'search'])->name('services.search');
+    Route::resource('services', ServiceController::class);
+
     Route::post('/work-orders/{workOrder}/services', [WorkOrderController::class, 'addService'])->name('work-orders.services.add');
     Route::delete('/work-orders/{workOrder}/services/{service}', [WorkOrderController::class, 'removeService'])->name('work-orders.services.remove');
 
     Route::get('/parts/search', [PartController::class, 'search'])->name('parts.search');
+    Route::resource('parts', PartController::class);
+
     Route::post('/work-orders/{workOrder}/parts', [WorkOrderController::class, 'addPart'])->name('work-orders.parts.add');
     Route::delete('/work-orders/{workOrder}/parts/{part}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.remove');
 

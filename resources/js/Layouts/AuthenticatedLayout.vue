@@ -1,14 +1,14 @@
 <script setup>
 import { ref, onMounted, computed, watchEffect } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button' // Adicione a importação do Button
+import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, MoreHorizontal, PlusCircle } from 'lucide-vue-next';
+import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, MoreHorizontal, PlusCircle, ListChecks } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 
 defineProps({
@@ -45,11 +45,12 @@ const menuItems = [
     { name: 'Ordens de Serviço', routeName: 'work-orders.index', icon: 'Wrench' },
     { name: 'Clientes', routeName: 'clients.index', icon: 'Users' },
     { name: 'Veículos', routeName: 'vehicles.index', icon: 'Car' },
-    { name: 'Estoque', routeName: '#', icon: 'Warehouse' },
+    { name: 'Estoque', routeName: 'parts.index', icon: 'Warehouse' },
+    { name: 'Serviços', routeName: 'services.index', icon: 'ListChecks' }
 ];
 
 const icons = {
-    Home, Wrench, Users, Car, Warehouse
+    Home, Wrench, Users, Car, Warehouse, ListChecks
 };
 
 watchEffect(() => {
