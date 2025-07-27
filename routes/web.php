@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\PartController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\WorkOrderController;
+use App\Models\Client;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,9 +20,22 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/clients/{client:uuid}/vehicles', function (Client $client) {
+        return $client->vehicles()->orderBy('make')->get();
+    })->name('clients.vehicles');
+
     Route::get('/clients/search', [ClientController::class, 'search'])->name('clients.search');
     Route::resource('clients', ClientController::class);
     Route::resource('vehicles', VehicleController::class);
+    Route::resource('work-orders', WorkOrderController::class);
+
+    Route::get('/services/search', [ServiceController::class, 'search'])->name('services.search');
+    Route::post('/work-orders/{workOrder}/services', [WorkOrderController::class, 'addService'])->name('work-orders.services.add');
+    Route::delete('/work-orders/{workOrder}/services/{service}', [WorkOrderController::class, 'removeService'])->name('work-orders.services.remove');
+
+    Route::get('/parts/search', [PartController::class, 'search'])->name('parts.search');
+    Route::post('/work-orders/{workOrder}/parts', [WorkOrderController::class, 'addPart'])->name('work-orders.parts.add');
+    Route::delete('/work-orders/{workOrder}/parts/{part}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.remove');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

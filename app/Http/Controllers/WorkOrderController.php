@@ -1,0 +1,182 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\WorkOrders\StoreWorkOrderRequest;
+use App\Models\Client;
+use App\Models\Part;
+use App\Models\Service;
+use App\Models\WorkOrder;
+use App\Services\WorkOrderService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class WorkOrderController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): Response
+    {
+        $workOrders = WorkOrder::with(['client', 'vehicle'])
+            ->latest()
+            ->paginate(10);
+
+        return Inertia::render('WorkOrders/Index', [
+            'workOrders' => $workOrders,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        // Passamos todos os clientes para o formulário
+        $clients = Client::orderBy('name')->limit(10)->get(['id', 'uuid', 'name', 'document_number']);
+
+        return Inertia::render('WorkOrders/Create', [
+            'clients' => $clients,
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreWorkOrderRequest $request, WorkOrderService $workOrderService): RedirectResponse
+    {
+        $workOrder = $workOrderService->create($request->validated());
+
+        return redirect()->route('work-orders.index')
+            ->with('success', 'Ordem de Serviço criada com sucesso.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(WorkOrder $workOrder): Response
+    {
+        $workOrder->load(['client', 'vehicle', 'parts', 'services']);
+
+        return Inertia::render('WorkOrders/Edit', [
+            'workOrder' => $workOrder,
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+
+    public function addService(Request $request, WorkOrder $workOrder)
+    {
+        $request->validate([
+            'service_id' => ['required', 'exists:services,id'],
+        ]);
+
+        $service = Service::find($request->input('service_id'));
+
+        $workOrder->services()->attach($service->id, ['price' => $service->price]);
+
+        $totalServicesPrice = DB::table('service_work_order')
+            ->where('work_order_id', $workOrder->id)
+            ->sum('price');
+
+        $totalPartsPrice = $workOrder->parts()->get()->sum(function ($part) {
+            return $part->pivot->quantity * $part->pivot->sale_price;
+        });
+
+        $workOrder->total_services_price = $totalServicesPrice;
+        $workOrder->total_parts_price = $totalPartsPrice;
+        $workOrder->total_price = $totalServicesPrice + $totalPartsPrice;
+        $workOrder->save();
+
+        return back()->with('success', 'Serviço adicionado com sucesso.');
+    }
+
+    public function addPart(Request $request, WorkOrder $workOrder)
+    {
+        $request->validate([
+            'part_id' => ['required', 'exists:parts,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $part = Part::find($request->input('part_id'));
+        $quantity = $request->input('quantity');
+
+        $workOrder->parts()->syncWithoutDetaching([
+            $part->id => [
+                'quantity' => $quantity,
+                'sale_price' => $part->sale_price,
+            ],
+        ]);
+
+        $totalServicesPrice = $workOrder->services()->sum('service_work_order.price');
+        $totalPartsPrice = $workOrder->parts()->get()->sum(function ($part) {
+            return $part->pivot->quantity * $part->pivot->sale_price;
+        });
+
+        $workOrder->total_services_price = $totalServicesPrice;
+        $workOrder->total_parts_price = $totalPartsPrice;
+        $workOrder->total_price = $totalServicesPrice + $totalPartsPrice;
+        $workOrder->save();
+
+        return back()->with('success', 'Peça adicionada com sucesso.');
+    }
+
+    public function removeService(WorkOrder $workOrder, Service $service)
+    {
+        $workOrder->services()->detach($service->id);
+
+        $totalServicesPrice = $workOrder->services()->sum('service_work_order.price');
+        $totalPartsPrice = $workOrder->parts()->get()->sum(function ($part) {
+            return $part->pivot->quantity * $part->pivot->sale_price;
+        });
+
+        $workOrder->total_services_price = $totalServicesPrice;
+        $workOrder->total_parts_price = $totalPartsPrice;
+        $workOrder->total_price = $totalServicesPrice + $totalPartsPrice;
+        $workOrder->save();
+
+        return back()->with('success', 'Serviço removido com sucesso.');
+    }
+
+    public function removePart(WorkOrder $workOrder, Part $part)
+    {
+        $workOrder->parts()->detach($part->id);
+
+        $totalServicesPrice = $workOrder->services()->sum('service_work_order.price');
+        $totalPartsPrice = $workOrder->parts()->get()->sum(function ($part) {
+            return $part->pivot->quantity * $part->pivot->sale_price;
+        });
+
+        $workOrder->total_services_price = $totalServicesPrice;
+        $workOrder->total_parts_price = $totalPartsPrice;
+        $workOrder->total_price = $totalServicesPrice + $totalPartsPrice;
+        $workOrder->save();
+
+        return back()->with('success', 'Peça removida com sucesso.');
+    }
+}

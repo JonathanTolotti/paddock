@@ -93,7 +93,7 @@ class ClientController extends Controller
             ->orWhere('document_number', 'LIKE', "%{$term}%")
             ->orderBy('name')
             ->limit(10)
-            ->get(['id', 'name', 'document_number']);
+            ->get(['id', 'uuid', 'name', 'document_number']);
 
         return response()->json($clients);
     }

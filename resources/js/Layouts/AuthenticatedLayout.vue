@@ -42,7 +42,7 @@ const logout = () => {
 
 const menuItems = [
     { name: 'Dashboard', routeName: 'dashboard', icon: 'Home' },
-    { name: 'Ordens de Serviço', routeName: '#', icon: 'Wrench' },
+    { name: 'Ordens de Serviço', routeName: 'work-orders.index', icon: 'Wrench' },
     { name: 'Clientes', routeName: 'clients.index', icon: 'Users' },
     { name: 'Veículos', routeName: 'vehicles.index', icon: 'Car' },
     { name: 'Estoque', routeName: '#', icon: 'Warehouse' },
