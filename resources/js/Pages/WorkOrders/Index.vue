@@ -81,8 +81,8 @@ defineProps({
                                 R$ {{ parseFloat(wo.total_price).toFixed(2).replace('.', ',') }}
                             </TableCell>
                             <TableCell>
-                                <Badge :variant="wo.status.color">
-                                    {{ wo.status.label }}
+                                <Badge :variant="wo.status_color">
+                                    {{ wo.status_label }}
                                 </Badge>
                             </TableCell>
                             <TableCell class="text-right">

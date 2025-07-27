@@ -155,6 +155,25 @@ const confirmRemovePart = (partUuid) => {
     });
 };
 
+const updateStatus = (newStatus) => {
+    Swal.fire({
+        title: `Alterar status para "${newStatus.replace('_', ' ').toUpperCase()}"?`,
+        text: "Você confirma esta ação?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, alterar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.patch(route('work-orders.status.update', props.workOrder.uuid), {
+                status: newStatus,
+            }, {
+                preserveScroll: true,
+            });
+        }
+    });
+};
+
 // Helper para formatar moeda
 const formatCurrency = (value) => {
     return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -166,23 +185,41 @@ const formatCurrency = (value) => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center gap-4">
-                <Link :href="route('work-orders.index')">
-                    <Button variant="outline" size="icon" class="h-8 w-8">
-                        <ArrowLeft class="h-4 w-4" />
-                    </Button>
-                </Link>
-                <div class="flex-1">
-                    <h2 class="text-xl font-semibold leading-tight">
-                        Detalhes da Ordem de Serviço #{{ workOrder.id }}
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        Status atual: <span class="font-medium">{{ workOrder.status.label }}</span>
-                    </p>
+            <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-4">
+                    <Link :href="route('work-orders.index')">
+                        <Button variant="outline" size="icon" class="h-8 w-8">
+                            <ArrowLeft class="h-4 w-4" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h2 class="text-xl font-semibold leading-tight">
+                            Ordem de Serviço #{{ workOrder.id }}
+                        </h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-sm text-muted-foreground">Status:</p>
+                            <Badge :variant="workOrder.status_color" class="text-base">
+                                {{ workOrder.status_label }}
+                            </Badge>
+                        </div>
+                    </div>
                 </div>
-                <Badge :variant="workOrder.status.color" class="text-base">
-                    {{ workOrder.status.label }}
-                </Badge>
+
+                <div class="flex items-center gap-4">
+                    <div v-if="['budget', 'approved', 'in_progress'].includes(workOrder.status)">
+                        <Button @click="updateStatus('canceled')" variant="destructive" size="sm">Cancelar OS</Button>
+                    </div>
+
+                    <div v-if="workOrder.status === 'budget'">
+                        <Button @click="updateStatus('approved')" variant="success">Aprovar Orçamento</Button>
+                    </div>
+                    <div v-else-if="workOrder.status === 'approved'">
+                        <Button @click="updateStatus('in_progress')" variant="success">Iniciar Serviço</Button>
+                    </div>
+                    <div v-else-if="workOrder.status === 'in_progress'">
+                        <Button @click="updateStatus('finished')" variant="success">Finalizar Serviço</Button>
+                    </div>
+                </div>
             </div>
         </template>
 
@@ -196,7 +233,7 @@ const formatCurrency = (value) => {
                                 <span>Serviços (Mão de Obra)</span>
                             </CardTitle>
                         </div>
-                        <Dialog v-model:open="isAddServiceDialogOpen">
+                        <Dialog v-if="workOrder.status === 'budget'" v-model:open="isAddServiceDialogOpen">
                             <DialogTrigger as-child>
                                 <Button size="sm" variant="outline">
                                     <PlusCircle class="h-4 w-4 mr-2"/>
@@ -246,7 +283,7 @@ const formatCurrency = (value) => {
                                     <TableCell>{{ service.name }}</TableCell>
                                     <TableCell class="text-right">{{ formatCurrency(service.pivot.price) }}</TableCell>
                                     <TableCell>
-                                        <Button @click="confirmRemoveService(service.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                        <Button v-if="workOrder.status === 'budget'" @click="confirmRemoveService(service.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </TableCell>
@@ -264,7 +301,7 @@ const formatCurrency = (value) => {
                                 <span>Peças</span>
                             </CardTitle>
                         </div>
-                        <Dialog v-model:open="isAddPartDialogOpen">
+                        <Dialog v-if="workOrder.status === 'budget'" v-model:open="isAddPartDialogOpen">
                             <DialogTrigger as-child>
                                 <Button size="sm" variant="outline">
                                     <PlusCircle class="h-4 w-4 mr-2"/>
@@ -328,7 +365,7 @@ const formatCurrency = (value) => {
                                     <TableCell>{{ formatCurrency(part.pivot.sale_price) }}</TableCell>
                                     <TableCell class="text-right">{{ formatCurrency(part.pivot.quantity * part.pivot.sale_price) }}</TableCell>
                                     <TableCell>
-                                        <Button @click="confirmRemovePart(part.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                        <Button v-if="workOrder.status === 'budget'" @click="confirmRemovePart(part.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </TableCell>

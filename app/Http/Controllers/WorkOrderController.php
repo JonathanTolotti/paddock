@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\WorkOrderStatus;
 use App\Http\Requests\WorkOrders\StoreWorkOrderRequest;
+use App\Http\Requests\WorkOrders\UpdateStatusRequest;
 use App\Models\Client;
 use App\Models\Part;
 use App\Models\Service;
@@ -90,8 +92,12 @@ class WorkOrderController extends Controller
         //
     }
 
-    public function addService(Request $request, WorkOrder $workOrder)
+    public function addService(Request $request, WorkOrder $workOrder): RedirectResponse
     {
+        if ($workOrder->status !== WorkOrderStatus::BUDGET) {
+            abort(403, 'Não é possível adicionar itens a uma OS que não está em orçamento.');
+        }
+
         $request->validate([
             'service_id' => ['required', 'exists:services,id'],
         ]);
@@ -116,8 +122,12 @@ class WorkOrderController extends Controller
         return back()->with('success', 'Serviço adicionado com sucesso.');
     }
 
-    public function addPart(Request $request, WorkOrder $workOrder)
+    public function addPart(Request $request, WorkOrder $workOrder): RedirectResponse
     {
+        if ($workOrder->status !== WorkOrderStatus::BUDGET) {
+            abort(403, 'Não é possível adicionar itens a uma OS que não está em orçamento.');
+        }
+
         $request->validate([
             'part_id' => ['required', 'exists:parts,id'],
             'quantity' => ['required', 'integer', 'min:1'],
@@ -146,8 +156,12 @@ class WorkOrderController extends Controller
         return back()->with('success', 'Peça adicionada com sucesso.');
     }
 
-    public function removeService(WorkOrder $workOrder, Service $service)
+    public function removeService(WorkOrder $workOrder, Service $service): RedirectResponse
     {
+        if ($workOrder->status !== WorkOrderStatus::BUDGET) {
+            abort(403, 'Não é possível adicionar itens a uma OS que não está em orçamento.');
+        }
+
         $workOrder->services()->detach($service->id);
 
         $totalServicesPrice = $workOrder->services()->sum('service_work_order.price');
@@ -163,8 +177,12 @@ class WorkOrderController extends Controller
         return back()->with('success', 'Serviço removido com sucesso.');
     }
 
-    public function removePart(WorkOrder $workOrder, Part $part)
+    public function removePart(WorkOrder $workOrder, Part $part): RedirectResponse
     {
+        if ($workOrder->status !== WorkOrderStatus::BUDGET) {
+            abort(403, 'Não é possível adicionar itens a uma OS que não está em orçamento.');
+        }
+
         $workOrder->parts()->detach($part->id);
 
         $totalServicesPrice = $workOrder->services()->sum('service_work_order.price');
@@ -178,5 +196,21 @@ class WorkOrderController extends Controller
         $workOrder->save();
 
         return back()->with('success', 'Peça removida com sucesso.');
+    }
+
+    public function updateStatus(UpdateStatusRequest $request, WorkOrder $workOrder, WorkOrderService $service): RedirectResponse
+    {
+        $newStatus = WorkOrderStatus::from($request->input('status'));
+
+        // O 'match' é uma versão moderna e mais segura do 'switch'
+        match ($newStatus) {
+            WorkOrderStatus::APPROVED => $service->approve($workOrder),
+            WorkOrderStatus::IN_PROGRESS => $service->startProgress($workOrder),
+            WorkOrderStatus::FINISHED => $service->finish($workOrder),
+            WorkOrderStatus::CANCELED => $service->cancel($workOrder),
+            default => null, // Não faz nada para outros status
+        };
+
+        return back()->with('success', 'Status da OS atualizado com sucesso.');
     }
 }

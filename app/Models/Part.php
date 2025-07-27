@@ -20,6 +20,7 @@ class Part extends Model
         'cost_price',
         'sale_price',
         'quantity',
+        'quantity_reserved',
     ];
 
     protected $casts = [

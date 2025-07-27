@@ -37,6 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/work-orders/{workOrder}/parts', [WorkOrderController::class, 'addPart'])->name('work-orders.parts.add');
     Route::delete('/work-orders/{workOrder}/parts/{part}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.remove');
 
+    Route::patch('/work-orders/{workOrder}/status', [WorkOrderController::class, 'updateStatus'])->name('work-orders.status.update');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

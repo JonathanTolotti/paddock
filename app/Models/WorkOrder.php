@@ -33,24 +33,13 @@ class WorkOrder extends Model
         'total_services_price' => 'decimal:2',
         'total_price' => 'decimal:2',
         'finished_at' => 'datetime',
+        'status' => WorkOrderStatus::class,
     ];
 
-    protected function status(): Attribute
-    {
-        return Attribute::make(
-            get: function ($value) {
-                if (!$value) {
-                    return null;
-                }
-
-                return [
-                    'value' => $value,
-                    'label' => WorkOrderStatus::from($value)->label(),
-                    'color' => WorkOrderStatus::from($value)->color(),
-                ];
-            }
-        );
-    }
+    protected $appends = [
+        'status_label',
+        'status_color',
+    ];
 
     protected static function booted(): void
     {
@@ -65,8 +54,6 @@ class WorkOrder extends Model
     {
         return 'uuid';
     }
-
-    // --- Relacionamentos ---
 
     public function client(): BelongsTo
     {
@@ -86,6 +73,7 @@ class WorkOrder extends Model
     public function parts(): BelongsToMany
     {
         return $this->belongsToMany(Part::class)
+            ->using(PartWorkOrder::class)
             ->withPivot('quantity', 'sale_price')
             ->withTimestamps();
     }
@@ -95,5 +83,21 @@ class WorkOrder extends Model
         return $this->belongsToMany(Service::class)
             ->withPivot('price')
             ->withTimestamps();
+    }
+
+    /**
+     * Getter para o label do status.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status->label();
+    }
+
+    /**
+     * Getter para a cor do status.
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return $this->status->color();
     }
 }
