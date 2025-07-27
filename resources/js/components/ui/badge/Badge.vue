@@ -6,7 +6,7 @@ const props = defineProps({
     variant: {
         type: String,
         validator: (val) =>
-            ['default', 'secondary', 'destructive', 'outline', 'success'].includes(val),
+            ['default', 'secondary', 'destructive', 'outline', 'success', 'warning'].includes(val),
     },
 })
 
@@ -20,6 +20,7 @@ const badgeVariants = cva(
                 destructive: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
                 outline: 'text-foreground',
                 success: 'border-transparent bg-green-600 text-primary-foreground hover:bg-green-600/80 dark:bg-green-700 dark:hover:bg-green-700/80',
+                warning: 'border-transparent bg-amber-500 text-amber-900 hover:bg-amber-500/80 dark:bg-amber-600 dark:text-amber-50 dark:hover:bg-amber-600/80',
             },
         },
         defaultVariants: {

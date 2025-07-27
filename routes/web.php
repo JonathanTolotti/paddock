@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClientPortal\QuoteController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
@@ -43,5 +44,18 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware('signed')->group(function () {
+    Route::get('/quote/{workOrder:uuid}', [QuoteController::class, 'show'])
+        ->name('quote.view');
+
+    Route::post('/quote/{workOrder:uuid}/approve', [QuoteController::class, 'approve'])
+        ->name('quote.approve');
+
+    Route::post('/quote/{workOrder:uuid}/reject', [QuoteController::class, 'reject'])
+        ->name('quote.reject');
+});
+
+
 
 require __DIR__.'/auth.php';

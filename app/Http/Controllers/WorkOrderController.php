@@ -202,15 +202,27 @@ class WorkOrderController extends Controller
     {
         $newStatus = WorkOrderStatus::from($request->input('status'));
 
-        // O 'match' é uma versão moderna e mais segura do 'switch'
         match ($newStatus) {
+            WorkOrderStatus::AWAITING_APPROVAL => $service->awaitingApproval($workOrder),
             WorkOrderStatus::APPROVED => $service->approve($workOrder),
             WorkOrderStatus::IN_PROGRESS => $service->startProgress($workOrder),
             WorkOrderStatus::FINISHED => $service->finish($workOrder),
             WorkOrderStatus::CANCELED => $service->cancel($workOrder),
-            default => null, // Não faz nada para outros status
+            default => null,
         };
 
-        return back()->with('success', 'Status da OS atualizado com sucesso.');
+        $redirect = redirect()->back()->with('success', 'Status da OS atualizado com sucesso.');
+
+        if ($newStatus === WorkOrderStatus::AWAITING_APPROVAL) {
+            $url = URL::temporarySignedRoute(
+                'quote.view',
+                now()->addDays(7),
+                ['workOrder' => $workOrder->uuid]
+            );
+
+            $redirect->with('quote_url', $url);
+        }
+
+        return $redirect;
     }
 }

@@ -33,7 +33,7 @@ import {
     CommandItem,
     CommandList,
 } from '@/components/ui/command';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -178,6 +178,21 @@ const updateStatus = (newStatus) => {
 const formatCurrency = (value) => {
     return parseFloat(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
+const copyClientLink = () => {
+    const url = props.workOrder.signed_url;
+
+    navigator.clipboard.writeText(url);
+
+    Swal.fire({
+        title: 'Link Copiado!',
+        icon: 'success',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+    });
+};
 </script>
 
 <template>
@@ -206,12 +221,18 @@ const formatCurrency = (value) => {
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <div v-if="['budget', 'approved', 'in_progress'].includes(workOrder.status)">
+                    <Button @click="copyClientLink" variant="outline" size="sm">
+                        Copiar Link do Cliente
+                    </Button>
+                    <div v-if="['budget', 'approved', 'in_progress', 'awaiting_approval'].includes(workOrder.status)">
                         <Button @click="updateStatus('canceled')" variant="destructive" size="sm">Cancelar OS</Button>
                     </div>
 
                     <div v-if="workOrder.status === 'budget'">
-                        <Button @click="updateStatus('approved')" variant="success">Aprovar Orçamento</Button>
+                        <Button @click="updateStatus('awaiting_approval')" variant="success">Enviar para aprovação</Button>
+                    </div>
+                    <div v-if="workOrder.status === 'awaiting_approval'">
+                        <Button @click="updateStatus('approved')" variant="success">Aprovar orçamento</Button>
                     </div>
                     <div v-else-if="workOrder.status === 'approved'">
                         <Button @click="updateStatus('in_progress')" variant="success">Iniciar Serviço</Button>

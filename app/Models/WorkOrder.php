@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use App\Enums\WorkOrderStatus;
+use App\Observers\WorkOrderObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
+#[ObservedBy(WorkOrderObserver::class)]
 class WorkOrder extends Model
 {
     use HasFactory, SoftDeletes;
@@ -25,6 +29,7 @@ class WorkOrder extends Model
         'total_parts_price',
         'total_services_price',
         'total_price',
+        'signed_url',
         'finished_at',
     ];
 
@@ -83,6 +88,11 @@ class WorkOrder extends Model
         return $this->belongsToMany(Service::class)
             ->withPivot('price')
             ->withTimestamps();
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(WorkOrderStatusHistory::class)->latest();
     }
 
     /**

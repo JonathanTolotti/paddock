@@ -5,6 +5,7 @@ namespace App\Enums;
 enum WorkOrderStatus: string
 {
     case BUDGET = 'budget';
+    case AWAITING_APPROVAL  = 'awaiting_approval';
     case APPROVED = 'approved';
     case IN_PROGRESS = 'in_progress';
     case FINISHED = 'finished';
@@ -14,6 +15,7 @@ enum WorkOrderStatus: string
     {
         return match ($this) {
             self::BUDGET => 'Orçamento',
+            self::AWAITING_APPROVAL => 'Aguardando aprovação',
             self::APPROVED => 'Aprovado',
             self::IN_PROGRESS => 'Em Andamento',
             self::FINISHED => 'Finalizado',
@@ -25,6 +27,7 @@ enum WorkOrderStatus: string
     {
         return match ($this) {
             self::BUDGET => 'secondary',
+            self::AWAITING_APPROVAL  => 'warning',
             self::APPROVED => 'default',
             self::IN_PROGRESS => 'outline',
             self::FINISHED => 'success',

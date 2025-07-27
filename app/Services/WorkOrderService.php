@@ -13,6 +13,15 @@ class WorkOrderService
         return WorkOrder::create($data);
     }
 
+    public function awaitingApproval(WorkOrder $workOrder): void
+    {
+        if ($workOrder->status !== WorkOrderStatus::BUDGET) {
+            return;
+        }
+        $workOrder->status = WorkOrderStatus::AWAITING_APPROVAL;
+        $workOrder->save();
+    }
+
     public function approve(WorkOrder $workOrder): void
     {
         if ($workOrder->status->value !== WorkOrderStatus::BUDGET->value) {
