@@ -4,7 +4,9 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientPortal\QuoteController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\WorkOrderController;
 use App\Models\Client;
@@ -47,6 +49,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::middleware(['role:Admin'])->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('roles', RoleController::class)->only(['index', 'edit', 'update']);
+    });
 });
 
 Route::middleware('signed')->group(function () {

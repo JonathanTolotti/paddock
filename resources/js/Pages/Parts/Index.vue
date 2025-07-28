@@ -57,7 +57,7 @@ const formatCurrency = (value) => {
                 <h2 class="text-xl font-semibold leading-tight">
                     Estoque de Peças
                 </h2>
-                <Link :href="route('parts.create')">
+                <Link v-if="$page.props.auth.user.permissions.includes('manage_catalog')" :href="route('parts.create')">
                     <Button>
                         <PlusCircle class="h-4 w-4 mr-2" />
                         Nova Peça
@@ -103,7 +103,7 @@ const formatCurrency = (value) => {
                                 </div>
                             </TableCell>
                             <TableCell class="text-right">
-                                <DropdownMenu>
+                                <DropdownMenu v-if="$page.props.auth.user.permissions.includes('manage_catalog')">
                                     <DropdownMenuTrigger as-child>
                                         <Button variant="ghost" class="h-8 w-8 p-0">
                                             <MoreHorizontal class="h-4 w-4" />

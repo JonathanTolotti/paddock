@@ -55,7 +55,7 @@ const confirmDelete = (serviceUuid) => {
         <template #header>
             <div class="flex items-center justify-between w-full">
                 <h2 class="text-xl font-semibold leading-tight">Catálogo de Serviços</h2>
-                <Link :href="route('services.create')">
+                <Link v-if="$page.props.auth.user.permissions.includes('manage_catalog')" :href="route('services.create')">
                     <Button>
                         <PlusCircle class="h-4 w-4 mr-2" />
                         Novo Serviço
@@ -92,7 +92,7 @@ const confirmDelete = (serviceUuid) => {
                             <TableCell class="hidden md:table-cell text-sm text-muted-foreground">{{ service.description }}</TableCell>
                             <TableCell>{{ formatCurrency(service.price) }}</TableCell>
                             <TableCell class="text-right">
-                                <DropdownMenu>
+                                <DropdownMenu v-if="$page.props.auth.user.permissions.includes('manage_catalog')">
                                     <DropdownMenuTrigger as-child>
                                         <Button variant="ghost" class="h-8 w-8 p-0">
                                             <span class="sr-only">Abrir menu</span>

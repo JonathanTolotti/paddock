@@ -11,9 +11,18 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Routing\Controller as BaseController;
 
-class ClientController extends Controller
+class ClientController extends BaseController
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:view_clients', ['only' => ['index', 'search']]);
+        $this->middleware('permission:create_clients', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit_clients', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete_clients', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */

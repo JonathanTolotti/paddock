@@ -11,9 +11,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Routing\Controller as BaseController;
 
-class PartController extends Controller
+class PartController extends BaseController
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_catalog');
+    }
     public function index(): Response
     {
         $parts = Part::orderBy('name')->paginate(15);

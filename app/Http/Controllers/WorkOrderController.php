@@ -15,9 +15,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Routing\Controller as BaseController;
 
-class WorkOrderController extends Controller
+
+class WorkOrderController extends BaseController
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:view_work_orders', ['only' => ['index']]);
+        $this->middleware('permission:create_work_orders', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit_work_orders', ['only' => ['edit', 'update', 'updateStatus', 'addService', 'removeService', 'addPart', 'removePart']]);
+        $this->middleware('permission:delete_work_orders', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of the resource.
      */

@@ -54,7 +54,7 @@ defineProps({
                 <h2 class="text-xl font-semibold leading-tight">
                     Gestão de Veículos
                 </h2>
-                <Link :href="route('vehicles.create')">
+                <Link v-if="$page.props.auth.user.permissions.includes('create_vehicles')" :href="route('vehicles.create')">
                     <Button>
                         <PlusCircle class="h-4 w-4 mr-2" />
                         Novo Veículo
@@ -104,10 +104,10 @@ defineProps({
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem as-child>
+                                        <DropdownMenuItem v-if="$page.props.auth.user.permissions.includes('edit_vehicles')" as-child>
                                             <Link :href="route('vehicles.edit', vehicle.uuid)">Editar</Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem @click="confirmDelete(vehicle.uuid)" class="text-red-600 focus:text-red-600 cursor-pointer">
+                                        <DropdownMenuItem v-if="$page.props.auth.user.permissions.includes('delete_vehicles')" @click="confirmDelete(vehicle.uuid)" class="text-red-600 focus:text-red-600 cursor-pointer">
                                             Excluir
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>

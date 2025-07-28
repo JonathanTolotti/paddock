@@ -220,7 +220,7 @@ const copyClientLink = () => {
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div v-if="$page.props.auth.user.permissions.includes('edit_work_orders')" class="flex items-center gap-4">
                     <Button @click="copyClientLink" variant="outline" size="sm">
                         Copiar Link do Cliente
                     </Button>
@@ -254,7 +254,7 @@ const copyClientLink = () => {
                                 <span>Serviços (Mão de Obra)</span>
                             </CardTitle>
                         </div>
-                        <Dialog v-if="workOrder.status === 'budget'" v-model:open="isAddServiceDialogOpen">
+                        <Dialog v-if="$page.props.auth.user.permissions.includes('edit_work_orders') && workOrder.status === 'budget'" v-model:open="isAddServiceDialogOpen">
                             <DialogTrigger as-child>
                                 <Button size="sm" variant="outline">
                                     <PlusCircle class="h-4 w-4 mr-2"/>
@@ -304,7 +304,7 @@ const copyClientLink = () => {
                                     <TableCell>{{ service.name }}</TableCell>
                                     <TableCell class="text-right">{{ formatCurrency(service.pivot.price) }}</TableCell>
                                     <TableCell>
-                                        <Button v-if="workOrder.status === 'budget'" @click="confirmRemoveService(service.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                        <Button v-if="$page.props.auth.user.permissions.includes('edit_work_orders') && workOrder.status === 'budget'" @click="confirmRemoveService(service.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </TableCell>
@@ -322,7 +322,7 @@ const copyClientLink = () => {
                                 <span>Peças</span>
                             </CardTitle>
                         </div>
-                        <Dialog v-if="workOrder.status === 'budget'" v-model:open="isAddPartDialogOpen">
+                        <Dialog v-if="$page.props.auth.user.permissions.includes('edit_work_orders') && workOrder.status === 'budget'" v-model:open="isAddPartDialogOpen">
                             <DialogTrigger as-child>
                                 <Button size="sm" variant="outline">
                                     <PlusCircle class="h-4 w-4 mr-2"/>
@@ -386,7 +386,7 @@ const copyClientLink = () => {
                                     <TableCell>{{ formatCurrency(part.pivot.sale_price) }}</TableCell>
                                     <TableCell class="text-right">{{ formatCurrency(part.pivot.quantity * part.pivot.sale_price) }}</TableCell>
                                     <TableCell>
-                                        <Button v-if="workOrder.status === 'budget'" @click="confirmRemovePart(part.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                        <Button v-if="$page.props.auth.user.permissions.includes('edit_work_orders') && workOrder.status === 'budget'" @click="confirmRemovePart(part.uuid)" variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-destructive">
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </TableCell>

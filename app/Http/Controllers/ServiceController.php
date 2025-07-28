@@ -11,9 +11,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Routing\Controller as BaseController;
 
-class ServiceController extends Controller
+class ServiceController extends BaseController
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_catalog');
+    }
     public function index(): Response
     {
         return Inertia::render('Services/Index', [

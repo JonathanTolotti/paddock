@@ -11,9 +11,20 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Routing\Controller as BaseController;
 
-class VehicleController extends Controller
+
+class VehicleController extends BaseController
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:view_vehicles', ['only' => ['index']]);
+        $this->middleware('permission:create_vehicles', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit_vehicles', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:delete_vehicles', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of the resource.
      */

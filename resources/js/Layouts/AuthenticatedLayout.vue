@@ -1,21 +1,28 @@
 <script setup>
 import { ref, onMounted, computed, watchEffect } from 'vue';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, MoreHorizontal, PlusCircle, ListChecks } from 'lucide-vue-next';
+import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, ListChecks, UserCog, Shield, PanelLeft } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 
 defineProps({
     title: String,
 });
 
+const page = usePage();
 
+const isMobileMenuOpen = ref(false); // Adicionado para o menu mobile
+
+// --- Lógica do Dark Mode ---
 const isDarkMode = ref(
     localStorage.getItem('theme') === 'dark' ||
     (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -30,31 +37,41 @@ watchEffect(() => {
         localStorage.setItem('theme', 'light');
     }
 });
-
-const toggleDarkMode = () => {
-    isDarkMode.value = !isDarkMode.value;
-};
+const toggleDarkMode = () => { isDarkMode.value = !isDarkMode.value; };
+// --- Fim Dark Mode ---
 
 
 const logout = () => {
     router.post(route('logout'));
 };
 
+// --- Definição dos Itens de Menu com Permissões ---
 const menuItems = [
-    { name: 'Dashboard', routeName: 'dashboard', icon: 'Home' },
-    { name: 'Ordens de Serviço', routeName: 'work-orders.index', icon: 'Wrench' },
-    { name: 'Clientes', routeName: 'clients.index', icon: 'Users' },
-    { name: 'Veículos', routeName: 'vehicles.index', icon: 'Car' },
-    { name: 'Estoque', routeName: 'parts.index', icon: 'Warehouse' },
-    { name: 'Serviços', routeName: 'services.index', icon: 'ListChecks' }
+    { name: 'Dashboard', routeName: 'dashboard', permission: null, icon: 'Home' },
+    { name: 'Ordens de Serviço', routeName: 'work-orders.index', permission: 'view_work_orders', icon: 'Wrench' },
+    { name: 'Clientes', routeName: 'clients.index', permission: 'view_clients', icon: 'Users' },
+    { name: 'Veículos', routeName: 'vehicles.index', permission: 'view_vehicles', icon: 'Car' },
+    { name: 'Estoque', routeName: 'parts.index', permission: 'manage_catalog', icon: 'Warehouse' },
+    { name: 'Serviços', routeName: 'services.index', permission: 'manage_catalog', icon: 'ListChecks' }
 ];
 
+const adminMenuItems = [
+    { name: 'Usuários', routeName: 'users.index', permission: 'manage_users', icon: 'UserCog' },
+    { name: 'Cargos e Permissões', routeName: 'roles.index', permission: 'manage_users', icon: 'Shield' }
+]
+
 const icons = {
-    Home, Wrench, Users, Car, Warehouse, ListChecks
+    Home, Wrench, Users, Car, Warehouse, ListChecks, UserCog, Shield
 };
 
+// --- Helper para verificar permissões ---
+const can = (permission) => {
+    if (!permission) return true;
+    return page.props.auth.user.permissions.includes(permission);
+};
+
+// Watcher para SweetAlerts
 watchEffect(() => {
-    const page = usePage();
     if (page.props.flash?.success) {
         Swal.fire({
             icon: 'success',
@@ -66,7 +83,6 @@ watchEffect(() => {
             timerProgressBar: true,
         });
     }
-
     if (page.props.flash?.error) {
         Swal.fire({
             icon: 'error',
@@ -91,15 +107,41 @@ watchEffect(() => {
                         <span class="text-xl">Paddock</span>
                     </Link>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 overflow-auto py-2">
                     <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
-                        <Link v-for="item in menuItems" :key="item.name" :href="item.routeName === '#' ? '#' : route(item.routeName)"
-                              :class="{'bg-muted dark:bg-zinc-800 text-primary dark:text-zinc-50': item.routeName !== '#' && route().current(item.routeName)}"
-                              class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary dark:text-zinc-400 dark:hover:text-zinc-50"
-                        >
-                            <component :is="icons[item.icon]" class="h-4 w-4" />
-                            {{ item.name }}
-                        </Link>
+                        <template v-for="item in menuItems" :key="item.name">
+                            <Link v-if="can(item.permission)" :href="route(item.routeName)"
+                                  :class="{'bg-muted dark:bg-zinc-800 text-primary dark:text-zinc-50': route().current(item.routeName + '*')}"
+                                  class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary dark:text-zinc-400 dark:hover:text-zinc-50">
+                                <component :is="icons[item.icon]" class="h-4 w-4" />
+                                {{ item.name }}
+                            </Link>
+                        </template>
+
+                        <div v-if="$page.props.auth.user.roles.includes('Admin')" class="mt-4 pt-2 border-t border-gray-700">
+                            <Accordion type="single" collapsible class="w-full">
+                                <AccordionItem value="admin-menu" class="border-none">
+                                    <AccordionTrigger class="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:no-underline rounded-lg [&[data-state=open]>svg]:rotate-180">
+                                        <div class="flex items-center gap-3">
+                                            <Shield class="h-4 w-4" />
+                                            <span>Administração</span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent class="pt-1 pl-5">
+                                        <nav class="grid items-start text-sm font-medium">
+                                            <template v-for="item in adminMenuItems" :key="item.name">
+                                                <Link v-if="can(item.permission)" :href="route(item.routeName)"
+                                                      :class="{'bg-muted dark:bg-zinc-800 text-primary dark:text-zinc-50': route().current(item.routeName + '*')}"
+                                                      class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary dark:text-zinc-400 dark:hover:text-zinc-50">
+                                                    <component :is="icons[item.icon]" class="h-4 w-4" />
+                                                    {{ item.name }}
+                                                </Link>
+                                            </template>
+                                        </nav>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </div>
                     </nav>
                 </div>
             </div>
@@ -135,11 +177,10 @@ watchEffect(() => {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-
             </header>
 
-            <main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                <header v-if="$slots.header" class="flex items-center">
+            <main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
+                <header v-if="$slots.header">
                     <slot name="header" />
                 </header>
                 <slot />

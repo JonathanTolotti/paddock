@@ -68,7 +68,7 @@ const confirmDelete = (clientUuid) => {
                 <h2 class="text-xl font-semibold leading-tight">
                     Gestão de Clientes
                 </h2>
-                <Link :href="route('clients.create')">
+                <Link v-if="$page.props.auth.user.permissions.includes('create_clients')" :href="route('clients.create')">
                     <Button>
                         <PlusCircle class="h-4 w-4 mr-2" />
                         Novo Cliente
@@ -117,10 +117,10 @@ const confirmDelete = (clientUuid) => {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem as-child>
+                                        <DropdownMenuItem v-if="$page.props.auth.user.permissions.includes('edit_clients')" as-child>
                                             <Link :href="route('clients.edit', client.uuid)">Editar</Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem @click="confirmDelete(client.uuid)" class="text-red-600 focus:text-red-600 cursor-pointer">
+                                        <DropdownMenuItem v-if="$page.props.auth.user.permissions.includes('delete_clients')" @click="confirmDelete(client.uuid)" class="text-red-600 focus:text-red-600 cursor-pointer">
                                             Excluir
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
