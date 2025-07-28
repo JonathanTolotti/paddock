@@ -23,6 +23,7 @@ class WorkOrder extends Model
         'client_id',
         'vehicle_id',
         'user_id',
+        'mechanic_id',
         'status',
         'problem_reported',
         'technical_diagnosis',
@@ -73,6 +74,11 @@ class WorkOrder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function mechanic(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mechanic_id');
     }
 
     public function parts(): BelongsToMany

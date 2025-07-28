@@ -8,10 +8,12 @@ use App\Http\Requests\WorkOrders\UpdateStatusRequest;
 use App\Models\Client;
 use App\Models\Part;
 use App\Models\Service;
+use App\Models\User;
 use App\Models\WorkOrder;
 use App\Services\WorkOrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,14 +34,34 @@ class WorkOrderController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $workOrders = WorkOrder::with(['client', 'vehicle'])
-            ->latest()
-            ->paginate(10);
+        $query = WorkOrder::with(['client', 'vehicle']);
+
+        $user = Auth::user();
+
+        if ($user->hasRole('Mecânico')) {
+            $query->where('mechanic_id', $user->id);
+        }
+
+        // Aplica o filtro de busca, se existir
+        if ($request->filled('search')) {
+            $term = $request->input('search');
+            $query->where(function ($q) use ($term) {
+                $q->whereHas('client', function ($q) use ($term) {
+                    $q->where('name', 'LIKE', "%{$term}%");
+                })->orWhereHas('vehicle', function ($q) use ($term) {
+                    $q->where('plate', 'LIKE', "%{$term}%");
+                });
+            });
+        }
+
+        $workOrders = $query->latest()->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('WorkOrders/Index', [
             'workOrders' => $workOrders,
+            'filters' => $request->only('search'),
         ]);
     }
 
@@ -82,8 +104,11 @@ class WorkOrderController extends BaseController
     {
         $workOrder->load(['client', 'vehicle', 'parts', 'services']);
 
+        $mechanics = User::role('Mecânico')->get(['id', 'name']);
+
         return Inertia::render('WorkOrders/Edit', [
             'workOrder' => $workOrder,
+            'mechanics' => $mechanics,
         ]);
     }
 
@@ -235,5 +260,18 @@ class WorkOrderController extends BaseController
         }
 
         return $redirect;
+    }
+
+    public function assignMechanic(Request $request, WorkOrder $workOrder): RedirectResponse
+    {
+        $request->validate([
+            'mechanic_id' => ['required', 'exists:users,id'],
+        ]);
+
+        $workOrder->update([
+            'mechanic_id' => $request->input('mechanic_id'),
+        ]);
+
+        return back()->with('success', 'Mecânico atribuído com sucesso.');
     }
 }

@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/work-orders/{workOrder}/parts/{part}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.remove');
 
     Route::patch('/work-orders/{workOrder}/status', [WorkOrderController::class, 'updateStatus'])->name('work-orders.status.update');
+    Route::patch('/work-orders/{workOrder}/assign-mechanic', [WorkOrderController::class, 'assignMechanic'])->name('work-orders.assign-mechanic');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

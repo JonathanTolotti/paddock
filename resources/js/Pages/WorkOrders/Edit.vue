@@ -1,12 +1,19 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import Swal from 'sweetalert2';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { ArrowLeft, Car, User, Wrench, PlusCircle, Package, Trash2 } from 'lucide-vue-next';
 import {
     Table,
@@ -41,6 +48,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    mechanics: {
+        type: Array,
+        required: true,
+    }
 });
 
 // --- Lógica para Adicionar Serviço ---
@@ -193,6 +204,18 @@ const copyClientLink = () => {
         timerProgressBar: true,
     });
 };
+
+const mechanicForm = useForm({
+    mechanic_id: props.workOrder.mechanic_id ? String(props.workOrder.mechanic_id) : null,
+});
+
+watch(() => mechanicForm.mechanic_id, (newMechanicId) => {
+    router.patch(route('work-orders.assign-mechanic', props.workOrder.uuid), {
+        mechanic_id: newMechanicId,
+    }, {
+        preserveScroll: true,
+    });
+});
 </script>
 
 <template>
@@ -398,6 +421,28 @@ const copyClientLink = () => {
             </div>
 
             <div class="lg:col-span-1 space-y-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle class="flex items-center gap-2">
+                            <span>Responsável Técnico</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <div>
+                            <Label for="mechanic_id">Mecânico</Label>
+                            <Select v-model="mechanicForm.mechanic_id">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Nenhum mecânico atribuído" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="mechanic in mechanics" :key="mechanic.id" :value="String(mechanic.id)">
+                                        {{ mechanic.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
                 <Card>
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">

@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import {
     Table,
     TableBody,
@@ -9,6 +9,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { ref, watch } from 'vue';
+import debounce from 'lodash.debounce';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal } from 'lucide-vue-next';
@@ -19,12 +22,19 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-defineProps({
-    workOrders: {
-        type: Object,
-        required: true,
-    },
+const props = defineProps({
+    workOrders: Object,
+    filters: Object,
 });
+
+const search = ref(props.filters.search);
+
+watch(search, debounce((value) => {
+    router.get(route('work-orders.index'), { search: value }, {
+        preserveState: true,
+        replace: true,
+    });
+}, 300));
 
 </script>
 
@@ -47,6 +57,14 @@ defineProps({
         </template>
 
         <div class="p-4 sm:p-6 lg:p-8">
+            <div class="mb-6">
+                <Input
+                    type="text"
+                    v-model="search"
+                    placeholder="Buscar por nome do cliente ou placa..."
+                    class="max-w-sm"
+                />
+            </div>
             <div class="bg-background border shadow-sm rounded-lg">
                 <Table>
                     <TableHeader>
