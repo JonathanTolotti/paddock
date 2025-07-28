@@ -6,6 +6,7 @@ use App\Http\Controllers\PartController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\WorkOrderController;
@@ -52,7 +53,11 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['role:Admin'])->group(function () {
         Route::resource('users', UserController::class);
+
         Route::resource('roles', RoleController::class)->only(['index', 'edit', 'update']);
+
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
     });
 });
 

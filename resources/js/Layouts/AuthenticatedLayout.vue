@@ -11,7 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, ListChecks, UserCog, Shield, PanelLeft } from 'lucide-vue-next';
+import { Home, Wrench, Users, Car, Warehouse, Sun, Moon, ListChecks, UserCog, Shield, PanelLeft, Settings } from 'lucide-vue-next';
 import Swal from 'sweetalert2';
 
 defineProps({
@@ -57,11 +57,12 @@ const menuItems = [
 
 const adminMenuItems = [
     { name: 'Usuários', routeName: 'users.index', permission: 'manage_users', icon: 'UserCog' },
-    { name: 'Cargos e Permissões', routeName: 'roles.index', permission: 'manage_users', icon: 'Shield' }
+    { name: 'Cargos e Permissões', routeName: 'roles.index', permission: 'manage_users', icon: 'Shield' },
+    { name: 'Configurações', routeName: 'settings.index', permission: 'manage_users', icon: 'Settings' },
 ]
 
 const icons = {
-    Home, Wrench, Users, Car, Warehouse, ListChecks, UserCog, Shield
+    Home, Wrench, Users, Car, Warehouse, ListChecks, UserCog, Shield, Settings
 };
 
 // --- Helper para verificar permissões ---
